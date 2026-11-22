@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { i18n } from "@/i18n";
 
 vi.mock("@/hooks/useCoordinatorWorkspaceEnabled", () => ({
   useCoordinatorWorkspaceEnabled: () => ({ enabled: false, loaded: true, userId: "viewer" }),
@@ -153,7 +154,8 @@ describe("Sidebar", () => {
     return root;
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
     container = document.createElement("div");
     document.body.appendChild(container);
     mockHeartbeatsApi.liveRunsForCompany.mockResolvedValue([]);
@@ -163,7 +165,8 @@ describe("Sidebar", () => {
     mockInboxBadge.failedRuns = 0;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
     container.remove();
     document.body.innerHTML = "";
     vi.clearAllMocks();
@@ -658,6 +661,22 @@ describe("Sidebar", () => {
 
     expect(container.querySelector('button[aria-label="Collapse sidebar"]')).toBeNull();
     expect(container.querySelector('button[aria-label="Keep sidebar expanded"]')).toBeNull();
+
+    flushSync(() => {
+      root.unmount();
+    });
+  });
+
+  it("renders the navigation labels in Brazilian Portuguese", async () => {
+    await i18n.changeLanguage("pt-BR");
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableResponsibilities: false });
+    const root = await renderSidebar();
+
+    const primaryLabels = [...container.querySelectorAll("nav > div:first-child a")]
+      .map((anchor) => anchor.textContent?.trim());
+    expect(primaryLabels).toEqual(["Buscar", "Painel", "Caixa de entrada"]);
+    expect(container.querySelector("nav")?.textContent).toContain("Trabalho");
+    expect(container.querySelector("nav")?.textContent).toContain("Tarefas");
 
     flushSync(() => {
       root.unmount();
