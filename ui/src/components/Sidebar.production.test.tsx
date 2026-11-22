@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar.production";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { i18n } from "@/i18n";
 
 const mockInstanceSettingsApi = vi.hoisted(() => ({ getExperimental: vi.fn() }));
 
@@ -71,15 +72,17 @@ describe("production Sidebar ordering", () => {
   const labels = (group: Element | null | undefined) =>
     [...(group?.querySelectorAll("a") ?? [])].map((anchor) => anchor.textContent?.trim());
   const primaryGroup = () => container.querySelector("nav > div");
-  const workSection = () =>
-    [...container.querySelectorAll("nav > div")].find((section) => section.textContent?.startsWith("Work"));
+  const workSection = (label = "Work") =>
+    [...container.querySelectorAll("nav > div")].find((section) => section.textContent?.startsWith(label));
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
     container = document.createElement("div");
     document.body.appendChild(container);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
     flushSync(() => root.unmount());
     container.remove();
     vi.clearAllMocks();
@@ -104,5 +107,15 @@ describe("production Sidebar ordering", () => {
     expect(container.querySelector('a[href="/dashboard"]')).toBeNull();
     // This shell has no Chat row; none is invented.
     expect(container.querySelector('a[href="/chats"]')).toBeNull();
+  });
+
+  it("renders the production sidebar labels in Brazilian Portuguese", async () => {
+    await i18n.changeLanguage("pt-BR");
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableResponsibilities: false });
+    await renderSidebar();
+
+    expect(labels(primaryGroup())).toEqual(["Buscar", "Painel", "Caixa de entrada"]);
+    expect(labels(workSection("Trabalho"))[0]).toBe("Tarefas");
+    expect(workSection("Trabalho")?.textContent).toContain("Trabalho");
   });
 });
