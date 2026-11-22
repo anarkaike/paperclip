@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 import { useSidebar } from "../context/SidebarContext";
 import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 import { TruncatedText } from "./TruncatedText";
 
 interface SidebarNavItemProps {
@@ -61,6 +62,7 @@ export function SidebarNavItem({
   liveAccessory,
   linkHandlers,
 }: SidebarNavItemProps) {
+  const { t } = useTranslation();
   const { isMobile, setSidebarOpen } = useSidebar();
   const hasBadge = badge != null && badge > 0;
   const hasLive = liveCount != null && liveCount > 0;
@@ -122,7 +124,7 @@ export function SidebarNavItem({
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-600 dark:bg-blue-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400" />
               </span>
-              <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">{liveCount} live</span>
+              <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">{t("nav.item.liveCount", { count: liveCount })}</span>
             </>
           )}
         </span>

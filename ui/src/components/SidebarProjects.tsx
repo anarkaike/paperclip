@@ -43,14 +43,15 @@ import {
   writeProjectSortMode,
 } from "../lib/project-order";
 import type { Project } from "@paperclipai/shared";
+import { useTranslation } from "@/i18n";
 import { companyProjectsQuery } from "@/lib/company-projects-query";
 
 type ProjectSidebarSlot = ReturnType<typeof usePluginSlots>["slots"][number];
 
 const PROJECT_SORT_CHOICES: SidebarSectionRadioChoice[] = [
-  { value: "top", label: "Top" },
-  { value: "alphabetical", label: "Alphabetical" },
-  { value: "recent", label: "Recent" },
+  { value: "top", label: "nav.sort.top" },
+  { value: "alphabetical", label: "nav.sort.alphabetical" },
+  { value: "recent", label: "nav.sort.recent" },
 ];
 const REORDER_POINTER_MEDIA = "(hover: hover) and (pointer: fine)";
 
@@ -120,6 +121,7 @@ function ProjectItem({
   leaving = false,
   isDragging = false,
 }: ProjectItemProps) {
+  const { t } = useTranslation();
   const routeRef = projectRouteRef(project);
   const { summary: externalObjectsSummary } = useProjectExternalObjectSummary(project.id);
 
@@ -143,9 +145,9 @@ function ProjectItem({
     >
       <ProjectTile color={project.color ?? null} icon={project.icon ?? null} size="xs" />
       <span className="flex-1 truncate">{project.name}</span>
-      {project.visibility === "private" ? <Lock className="size-3.5 shrink-0 text-muted-foreground" aria-label="Private project" /> : null}
+      {project.visibility === "private" ? <Lock className="size-3.5 shrink-0 text-muted-foreground" aria-label={t("nav.projects.private")} /> : null}
       <ExternalObjectStatusSummary summary={externalObjectsSummary} compact />
-      {project.pauseReason === "budget" ? <BudgetSidebarMarker title="Project paused by budget" /> : null}
+      {project.pauseReason === "budget" ? <BudgetSidebarMarker title={t("nav.projects.pausedByBudget")} /> : null}
     </NavLink>
   );
 
@@ -165,7 +167,7 @@ function ProjectItem({
                   ? "opacity-100"
                   : "pointer-events-none opacity-0 group-hover/project:pointer-events-auto group-hover/project:opacity-100 group-focus-within/project:pointer-events-auto group-focus-within/project:opacity-100",
               )}
-              aria-label={`Open actions for ${project.name}`}
+              aria-label={t("nav.openActionsFor", { name: project.name })}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </Button>
@@ -179,7 +181,7 @@ function ProjectItem({
               disabled={leaving}
             >
               {leaving ? <Loader2 className="size-4 motion-safe:animate-spin" /> : <LogOut className="size-4" />}
-              <span>{leaving ? "Leaving..." : "Leave project"}</span>
+              <span>{leaving ? t("nav.leaving") : t("nav.projects.leave")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -235,6 +237,7 @@ function SortableProjectItem(props: ProjectItemProps) {
 }
 
 export function SidebarProjects() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { openNewProject } = useDialogActions();
@@ -388,21 +391,21 @@ export function SidebarProjects() {
 
   return (
     <SidebarSection
-      label="Projects"
+      label={t("nav.projects.section")}
       collapsible={{ open, onOpenChange: setOpen }}
       headerAction={{
-        ariaLabel: "New project",
+        ariaLabel: t("nav.projects.new"),
         icon: Plus,
         onClick: openNewProject,
       }}
       menu={{
-        ariaLabel: "Projects section actions",
+        ariaLabel: t("nav.projects.sectionActions"),
         actions: [
-          { type: "item", label: "Browse projects", icon: FolderOpen, href: "/projects" },
+          { type: "item", label: t("nav.projects.browse"), icon: FolderOpen, href: "/projects" },
           { type: "separator" },
         ],
-        radioLabel: "Project sort",
-        radioChoices: PROJECT_SORT_CHOICES,
+        radioLabel: t("nav.projects.sort"),
+        radioChoices: PROJECT_SORT_CHOICES.map((choice) => ({ ...choice, label: t(choice.label) })),
         radioValue: sortMode,
         onRadioValueChange: persistSortMode,
       }}
